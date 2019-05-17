@@ -11,11 +11,7 @@ import AVFoundation
 import os.log
 
 /// The `Parser` is a concrete implementation of the `Parsing` protocol used to convert binary data into audio packet data. This class uses the Audio File Stream Services to progressively parse the properties and packets of the incoming audio data.
-public class Parser: Parsing {
-    static let logger = OSLog(subsystem: "com.fastlearner.streamer", category: "Parser")
-    static let loggerPacketCallback = OSLog(subsystem: "com.fastlearner.streamer", category: "Parser.Packets")
-    static let loggerPropertyListenerCallback = OSLog(subsystem: "com.fastlearner.streamer", category: "Parser.PropertyListener")
-    
+public class Parser: Parsing {    
     // MARK: - Parsing props
     
     public internal(set) var dataFormat: AVAudioFormat?
@@ -54,14 +50,11 @@ public class Parser: Parsing {
     // MARK: - Methods
     
     public func parse(data: Data) throws {
-        os_log("%@ - %d", log: Parser.logger, type: .debug, #function, #line)
-        
         let streamID = self.streamID!
         let count = data.count
         _ = try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
             let result = AudioFileStreamParseBytes(streamID, UInt32(count), bytes, [])
             guard result == noErr else {
-                os_log("Failed to parse bytes", log: Parser.logger, type: .error)
                 throw ParserError.failedToParseBytes(result)
             }
         }

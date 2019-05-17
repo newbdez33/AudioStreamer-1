@@ -13,9 +13,6 @@ import os.log
 
 /// The `Reader` is a concrete implementation of the `Reading` protocol and is intended to provide the audio data provider for an `AVAudioEngine`. The `parser` property provides a `Parseable` that handles converting binary audio data into audio packets in whatever the original file's format was (MP3, AAC, WAV, etc). The reader handles converting the audio data coming from the parser to a LPCM format that can be used in the context of `AVAudioEngine` since the `AVAudioPlayerNode` requires we provide `AVAudioPCMBuffer` in the `scheduleBuffer` methods.
 public class Reader: Reading {
-    static let logger = OSLog(subsystem: "com.fastlearner.streamer", category: "Reader")
-    static let loggerConverter = OSLog(subsystem: "com.fastlearner.streamer", category: "Reader.Converter")
-    
     // MARK: - Reading props
     
     public internal(set) var currentPacket: AVAudioPacketCount = 0
@@ -34,7 +31,6 @@ public class Reader: Reading {
     
     deinit {
         guard AudioConverterDispose(converter!) == noErr else {
-            os_log("Failed to dispose of audio converter", log: Reader.logger, type: .error)
             return
         }
     }
@@ -53,8 +49,6 @@ public class Reader: Reading {
             throw ReaderError.unableToCreateConverter(result)
         }
         self.readFormat = readFormat
-        
-        os_log("%@ - %d [sourceFormat: %@, destinationFormat: %@]", log: Reader.logger, type: .debug, #function, #line, String(describing: dataFormat), String(describing: readFormat))
     }
     
     // MARK: - Methods
@@ -90,8 +84,6 @@ public class Reader: Reading {
     }
     
     public func seek(_ packet: AVAudioPacketCount) throws {
-        os_log("%@ - %d [packet: %i]", log: Parser.logger, type: .debug, #function, #line, packet)
-        
         queue.sync {
             currentPacket = packet
         }

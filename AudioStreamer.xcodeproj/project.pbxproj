@@ -67,6 +67,7 @@
 		66C8351D2001DDE900E953C7 /* ReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C8351C2001DDE900E953C7 /* ReaderTests.swift */; };
 		66C8351F200286B400E953C7 /* Reader+Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C8351E200286B400E953C7 /* Reader+Converter.swift */; };
 		66C83520200286B400E953C7 /* Reader+Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C8351E200286B400E953C7 /* Reader+Converter.swift */; };
+		AEFAFC7B228EE7EF00F8D0A7 /* AudioStreamerTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEFAFC7A228EE7EF00F8D0A7 /* AudioStreamerTimer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +111,7 @@
 		66C835192001DAC400E953C7 /* ReaderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderError.swift; sourceTree = "<group>"; };
 		66C8351C2001DDE900E953C7 /* ReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTests.swift; sourceTree = "<group>"; };
 		66C8351E200286B400E953C7 /* Reader+Converter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Reader+Converter.swift"; sourceTree = "<group>"; };
+		AEFAFC7A228EE7EF00F8D0A7 /* AudioStreamerTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStreamerTimer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 		66A1395B20013F860076B0E5 /* AudioStreamer */ = {
 			isa = PBXGroup;
 			children = (
+				AEFAFC79228EE7D800F8D0A7 /* Shared */,
 				66A1397320013FAA0076B0E5 /* Download */,
 				66A139912001768B0076B0E5 /* Parse */,
 				66C835102001BED600E953C7 /* Read */,
@@ -236,6 +239,14 @@
 				66C835192001DAC400E953C7 /* ReaderError.swift */,
 			);
 			path = Read;
+			sourceTree = "<group>";
+		};
+		AEFAFC79228EE7D800F8D0A7 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				AEFAFC7A228EE7EF00F8D0A7 /* AudioStreamerTimer.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -423,6 +434,7 @@
 				665DDECE20C7AD1F00CBC330 /* ProgressSlider.swift in Sources */,
 				66A1DBC120C7201500A29E34 /* StreamingState.swift in Sources */,
 				66C8350820019AD300E953C7 /* ParserError.swift in Sources */,
+				AEFAFC7B228EE7EF00F8D0A7 /* AudioStreamerTimer.swift in Sources */,
 				66A1DBC320C7212100A29E34 /* StreamingDelegate.swift in Sources */,
 				66A1DBBD20C71ED200A29E34 /* Streaming.swift in Sources */,
 				66A13996200177050076B0E5 /* Parser.swift in Sources */,
@@ -654,7 +666,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = "$(SRCROOT)/AudioStreamer/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ausomeapps.AudioStreamer;
 				PRODUCT_NAME = AudioStreamer;
@@ -676,7 +688,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = "$(SRCROOT)/AudioStreamer/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ausomeapps.AudioStreamer;
 				PRODUCT_NAME = AudioStreamer;
