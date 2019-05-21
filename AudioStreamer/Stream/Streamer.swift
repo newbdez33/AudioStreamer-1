@@ -129,7 +129,7 @@ open class Streamer: Streaming {
     
     // MARK: - Methods
     
-    public func play() {
+    public func play(fadeInDuration: TimeInterval? = nil) {
         // Check we're not already playing
         guard !playerNode.isPlaying else {
             return
@@ -144,13 +144,19 @@ open class Streamer: Streaming {
         
         // To make the volume change less harsh we mute the output volume
         let lastVolume = volumeRampTargetValue ?? volume
-        volume = 0
+
+        volumeRampTimer?.invalidate()
+        volumeRampTimer = nil
+        volumeRampTargetValue = nil
+
+        volume = (fadeInDuration != nil) ? 0 : lastVolume
         
         // Start playback on the player node
         playerNode.play()
-        
-        // After 250ms we restore the volume to where it was
-        swellVolume(to: lastVolume)
+
+        if let fadeInDuration = fadeInDuration {
+            swellVolume(to: lastVolume, duration: fadeInDuration)
+        }
         
         // Update the state
         state = .playing

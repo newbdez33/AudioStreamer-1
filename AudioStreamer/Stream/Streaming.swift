@@ -56,7 +56,7 @@ public protocol Streaming: class {
     // MARK: - Methods
     
     /// Begins playback
-    func play()
+    func play(fadeInDuration: TimeInterval?)
     
     /// Pauses playback
     func pause()
