@@ -22,7 +22,7 @@ open class Streamer: Streaming {
         let currentTime = TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
         return currentTime + currentTimeOffset
     }
-    public var delegate: StreamingDelegate?
+    public weak var delegate: StreamingDelegate?
     public internal(set) var duration: TimeInterval?
     public lazy var downloader: Downloading = {
         let downloader = Downloader()
