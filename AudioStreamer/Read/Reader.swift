@@ -66,6 +66,14 @@ public class Reader: Reading {
         // Try to read the frames from the parser
         try queue.sync {
             let context = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+            let reader = Unmanaged<Reader>.fromOpaque(context)
+            _ = reader.retain()
+
+            // ужасный хак: даем 2 секунды на обработку данных, иначе может быть краш если ReaderConverterCallback отработает после Reader.deinit(). AudioConverterDispose не помогает в данной ситуации.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                reader.release()
+            })
+
             let status = AudioConverterFillComplexBuffer(converter!, ReaderConverterCallback, context, &packets, buffer.mutableAudioBufferList, nil)
             guard status == noErr else {
                 switch status {

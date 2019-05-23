@@ -46,7 +46,13 @@ public class Parser: Parsing {
             throw ParserError.streamCouldNotOpen
         }
     }
-    
+
+    deinit {
+        if let streamID = streamID {
+            AudioFileStreamClose(streamID)
+        }
+    }
+
     // MARK: - Methods
     
     public func parse(data: Data) throws {
