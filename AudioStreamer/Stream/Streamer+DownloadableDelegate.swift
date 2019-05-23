@@ -13,7 +13,9 @@ extension Streamer: DownloadingDelegate {
     
     public func download(_ download: Downloading, completedWithError error: Error?) {
         if let error = error, let url = download.url {
-            DispatchQueue.main.async { [unowned self] in
+            DispatchQueue.main.async { [weak self] in
+                guard let `self` = self else { return }
+                
                 self.delegate?.streamer(self, failedDownloadWithError: error, forURL: url)
             }
         }

@@ -228,7 +228,9 @@ open class Streamer: Streaming {
     
     func swellVolume(to newVolume: Float, duration: TimeInterval = 0.5) {
         volumeRampTargetValue = newVolume
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(duration*1000/2))) { [unowned self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(duration*1000/2))) { [weak self] in
+            guard let `self` = self else { return }
+            
             self.volumeRampTimer?.invalidate()
             let timer = AudioStreamerTimer(timeInterval: Double(Float((duration/2.0))/(newVolume * 10)), repeats: true) { timer in
                 if self.volume != newVolume {
