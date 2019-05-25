@@ -18,13 +18,13 @@ extension Downloader: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         totalBytesReceived += Int64(data.count)
         progress = Float(totalBytesReceived) / Float(totalBytesCount)
-        delegate?.download(self, didReceiveData: data, progress: progress)
+        getDelegate()?.download(self, didReceiveData: data, progress: progress)
         progressHandler?(data, progress)
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         state = .completed
-        delegate?.download(self, completedWithError: error)
+        getDelegate()?.download(self, completedWithError: error)
         completionHandler?(error)
     }
 }

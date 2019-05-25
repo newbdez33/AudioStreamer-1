@@ -14,7 +14,9 @@ public protocol Downloading: class {
     // MARK: - Properties
     
     /// A receiver implementing the `DownloadingDelegate` to receive state change, completion, and progress events from the `Downloading` instance.
-    var delegate: DownloadingDelegate? { get set }
+    func getDelegate() -> DownloadingDelegate?
+
+    func setDelegate(_ delegate: DownloadingDelegate?)
     
     /// A completion block for when the contents of the download are fully downloaded.
     var completionHandler: ((Error?) -> Void)? { get set }

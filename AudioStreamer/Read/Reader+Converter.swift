@@ -37,7 +37,10 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     //     2. We've reached the end of the data we currently have downloaded, but not the file
     //
     let packetIndex = Int(reader.currentPacket)
-    let packets = reader.parser.packets
+    let parser = reader.parser
+    objc_sync_enter(parser)
+    let packets = parser.packets
+
     let isEndOfData = packetIndex >= packets.count - 1
     if isEndOfData {
         if reader.parser.isParsingComplete {
@@ -75,6 +78,8 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     }
     packetCount.pointee = 1
     reader.currentPacket = reader.currentPacket + 1
+
+    objc_sync_exit(parser)
     
     return noErr;
 }

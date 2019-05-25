@@ -26,7 +26,7 @@ open class Streamer: Streaming {
     public internal(set) var duration: TimeInterval?
     public lazy var downloader: Downloading = {
         let downloader = Downloader()
-        downloader.delegate = self
+        downloader.setDelegate(self)
         return downloader
     }()
     public internal(set) var parser: Parsing?
@@ -116,8 +116,15 @@ open class Streamer: Streaming {
     func reset() {
         // Reset the playback state
         stop()
+
+        downloader.setDelegate(nil)
+        downloader.stop()
+        downloader = Downloader()
+        downloader.setDelegate(self)
+
         duration = nil
         reader = nil
+        parser = nil
         isFileSchedulingComplete = false
         
         // Create a new parser

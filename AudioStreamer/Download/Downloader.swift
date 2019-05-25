@@ -41,14 +41,13 @@ public class Downloader: NSObject, Downloading {
     var totalBytesCount: Int64 = 0
     
     // MARK: - Properties (Downloading)
-    
-    public weak var delegate: DownloadingDelegate?
+
     public var completionHandler: ((Error?) -> Void)?
     public var progressHandler: ((Data, Float) -> Void)?
     public var progress: Float = 0
     public var state: DownloadingState = .notStarted {
         didSet {
-            delegate?.download(self, changedState: state)
+            getDelegate()?.download(self, changedState: state)
         }
     }
     public var url: URL? {
@@ -70,6 +69,19 @@ public class Downloader: NSObject, Downloading {
     }
     
     // MARK: - Methods
+
+    public func getDelegate() -> DownloadingDelegate? {
+        objc_sync_enter(self)
+        let delegate = self.delegate
+        objc_sync_exit(self)
+        return delegate
+    }
+
+    public func setDelegate(_ delegate: DownloadingDelegate?) {
+        objc_sync_enter(self)
+        self.delegate = delegate
+        objc_sync_exit(self)
+    }
     
     public func start() {        
         guard let task = task else {
@@ -110,4 +122,6 @@ public class Downloader: NSObject, Downloading {
         state = .stopped
         task.cancel()
     }
+
+    private weak var delegate: DownloadingDelegate?
 }
