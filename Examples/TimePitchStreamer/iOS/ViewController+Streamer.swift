@@ -12,7 +12,8 @@ import os.log
 import UIKit
 
 extension ViewController: StreamingDelegate {
-    
+    func streamerDidFinishPlaying(_ streamer: Streaming) {
+    }
     func streamer(_ streamer: Streaming, failedDownloadWithError error: Error, forURL url: URL) {
         os_log("%@ - %d [%@]", log: ViewController.logger, type: .debug, #function, #line, error.localizedDescription)
         

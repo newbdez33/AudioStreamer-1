@@ -72,7 +72,7 @@ class ViewController: UIViewController {
             streamer.pause()
             
         } else {
-            streamer.play()
+            streamer.play(fadeInDuration: 3)
         }
     }
     
