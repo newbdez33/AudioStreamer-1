@@ -28,9 +28,7 @@ func ParserPacketCallback(_ context: UnsafeMutableRawPointer, _ byteCount: UInt3
             let packetSize = Int(packetDescription.mDataByteSize)
             let packetData = Data(bytes: data.advanced(by: packetStart), count: packetSize)
 
-            objc_sync_enter(parser)
-            parser.packets.append((packetData, packetDescription))
-            objc_sync_exit(parser)
+            parser.appendPacket(data: packetData, description: packetDescription)
         }
     } else {
         let format = dataFormat.streamDescription.pointee
@@ -40,9 +38,7 @@ func ParserPacketCallback(_ context: UnsafeMutableRawPointer, _ byteCount: UInt3
             let packetSize = bytesPerPacket
             let packetData = Data(bytes: data.advanced(by: packetStart), count: packetSize)
 
-            objc_sync_enter(parser)
-            parser.packets.append((packetData, nil))
-            objc_sync_exit(parser)
+            parser.appendPacket(data: packetData, description: nil)
         }
     }
 }

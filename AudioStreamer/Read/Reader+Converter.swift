@@ -38,10 +38,8 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     //
     let packetIndex = Int(reader.currentPacket)
     let parser = reader.parser
-    objc_sync_enter(parser)
-    let packets = parser.packets
 
-    let isEndOfData = packetIndex >= packets.count - 1
+    let isEndOfData = packetIndex >= parser.packetsCount - 1
     if isEndOfData {
         if reader.parser.isParsingComplete {
             packetCount.pointee = 0
@@ -54,7 +52,7 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     //
     // Copy data over (note we've only processing a single packet of data at a time)
     //
-    let packet = packets[packetIndex]
+    let packet = parser.packet(at: packetIndex)
     var data = packet.0
     let dataCount = data.count
     ioData.pointee.mNumberBuffers = 1
@@ -78,8 +76,6 @@ func ReaderConverterCallback(_ converter: AudioConverterRef,
     }
     packetCount.pointee = 1
     reader.currentPacket = reader.currentPacket + 1
-
-    objc_sync_exit(parser)
     
     return noErr;
 }
