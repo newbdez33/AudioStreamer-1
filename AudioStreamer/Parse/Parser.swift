@@ -28,7 +28,7 @@ public class Parser: Parsing {
             return nil
         }
         
-        return max(AVAudioPacketCount(packetCount), AVAudioPacketCount(packets.count))
+        return max(AVAudioPacketCount(packetCount), AVAudioPacketCount(packetsCount))
     }
     
     // MARK: - Properties
