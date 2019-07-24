@@ -74,6 +74,13 @@ open class Streamer: Streaming {
         setupAudioEngine()
     }
 
+    deinit {
+        volumeRampTimer?.invalidate()
+        volumeRampTimer = nil
+        stop()
+        detachNodes()
+    }
+
     // MARK: - Setup
 
     func setupAudioEngine() {
@@ -104,6 +111,10 @@ open class Streamer: Streaming {
     /// Subclass can override this to attach additional nodes to the engine before it is prepared. Default implementation attaches the `playerNode`. Subclass should call super or be sure to attach the playerNode.
     open func attachNodes() {
         engine.attach(playerNode)
+    }
+
+    open func detachNodes() {
+        engine.detach(playerNode)
     }
 
     /// Subclass can override this to make custom node connections in the engine before it is prepared. Default implementation connects the playerNode to the mainMixerNode on the `AVAudioEngine` using the default `readFormat`. Subclass should use the `readFormat` property when connecting nodes.
