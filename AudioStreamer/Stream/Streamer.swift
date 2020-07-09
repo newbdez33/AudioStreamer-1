@@ -141,11 +141,12 @@ open class Streamer: Streaming {
     }
     
     // MARK: - Methods
-    
-    public func play(fadeInDuration: TimeInterval? = nil) {
+
+    @discardableResult
+    public func play(fadeInDuration: TimeInterval? = nil) -> Bool {
         // Check we're not already playing
         guard !playerNode.isPlaying else {
-            return
+            return false
         }
         
         if !engine.isRunning {
@@ -154,6 +155,7 @@ open class Streamer: Streaming {
             } catch {
             }
         }
+        guard engine.isRunning else { return false }
         
         // To make the volume change less harsh we mute the output volume
         let lastVolume = volumeRampTargetValue ?? volume
@@ -173,6 +175,7 @@ open class Streamer: Streaming {
         
         // Update the state
         state = .playing
+        return true
     }
     
     public func pause() {
