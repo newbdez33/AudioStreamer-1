@@ -12,8 +12,6 @@ import os.log
 /// The `Downloader` is a concrete implementation of the `Downloading` protocol
 /// using `URLSession` as the backing HTTP/HTTPS implementation.
 public class Downloader: NSObject, Downloading {
-    static let logger = OSLog(subsystem: "com.fastlearner.streamer", category: "Downloader")
-    
     // MARK: - Singleton
     
     /// A singleton that can be used to perform multiple download requests using a common cache.
@@ -43,14 +41,13 @@ public class Downloader: NSObject, Downloading {
     var totalBytesCount: Int64 = 0
     
     // MARK: - Properties (Downloading)
-    
-    public var delegate: DownloadingDelegate?
+
     public var completionHandler: ((Error?) -> Void)?
     public var progressHandler: ((Data, Float) -> Void)?
     public var progress: Float = 0
     public var state: DownloadingState = .notStarted {
         didSet {
-            delegate?.download(self, changedState: state)
+            getDelegate()?.download(self, changedState: state)
         }
     }
     public var url: URL? {
@@ -72,10 +69,21 @@ public class Downloader: NSObject, Downloading {
     }
     
     // MARK: - Methods
+
+    public func getDelegate() -> DownloadingDelegate? {
+        objc_sync_enter(self)
+        let delegate = self.delegate
+        objc_sync_exit(self)
+        return delegate
+    }
+
+    public func setDelegate(_ delegate: DownloadingDelegate?) {
+        objc_sync_enter(self)
+        self.delegate = delegate
+        objc_sync_exit(self)
+    }
     
-    public func start() {
-        os_log("%@ - %d [%@]", log: Downloader.logger, type: .debug, #function, #line, String(describing: url))
-        
+    public func start() {        
         guard let task = task else {
             return
         }
@@ -90,8 +98,6 @@ public class Downloader: NSObject, Downloading {
     }
     
     public func pause() {
-        os_log("%@ - %d", log: Downloader.logger, type: .debug, #function, #line)
-        
         guard let task = task else {
             return
         }
@@ -105,8 +111,6 @@ public class Downloader: NSObject, Downloading {
     }
     
     public func stop() {
-        os_log("%@ - %d", log: Downloader.logger, type: .debug, #function, #line)
-        
         guard let task = task else {
             return
         }
@@ -118,4 +122,6 @@ public class Downloader: NSObject, Downloading {
         state = .stopped
         task.cancel()
     }
+
+    private weak var delegate: DownloadingDelegate?
 }

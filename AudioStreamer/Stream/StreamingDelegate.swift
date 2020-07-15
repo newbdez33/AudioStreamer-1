@@ -47,5 +47,6 @@ public protocol StreamingDelegate: class {
     ///   - streamer: The current `Streaming` instance
     ///   - duration: A `TimeInterval` representing the new duration value.
     func streamer(_ streamer: Streaming, updatedDuration duration: TimeInterval)
-    
+
+    func streamerDidFinishPlaying(_ streamer: Streaming)
 }

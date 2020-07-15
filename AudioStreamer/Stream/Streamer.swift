@@ -12,8 +12,6 @@ import os.log
 
 /// The `Streamer` is a concrete implementation of the `Streaming` protocol and is intended to provide a high-level, extendable class for streaming an audio file living at a URL on the internet. Subclasses can override the `attachNodes` and `connectNodes` methods to insert custom effects.
 open class Streamer: Streaming {
-    static let logger = OSLog(subsystem: "com.fastlearner.streamer", category: "Streamer")
-
     // MARK: - Properties (Streaming)
     
     public var currentTime: TimeInterval? {
@@ -24,11 +22,11 @@ open class Streamer: Streaming {
         let currentTime = TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
         return currentTime + currentTimeOffset
     }
-    public var delegate: StreamingDelegate?
+    public weak var delegate: StreamingDelegate?
     public internal(set) var duration: TimeInterval?
     public lazy var downloader: Downloading = {
         let downloader = Downloader()
-        downloader.delegate = self
+        downloader.setDelegate(self)
         return downloader
     }()
     public internal(set) var parser: Parsing?
@@ -58,7 +56,7 @@ open class Streamer: Streaming {
             engine.mainMixerNode.outputVolume = newValue
         }
     }
-    var volumeRampTimer: Timer?
+    var volumeRampTimer: AudioStreamerTimer?
     var volumeRampTargetValue: Float?
 
     // MARK: - Properties
@@ -76,11 +74,15 @@ open class Streamer: Streaming {
         setupAudioEngine()
     }
 
+    deinit {
+        volumeRampTimer?.invalidate()
+        volumeRampTimer = nil
+        stop()
+    }
+
     // MARK: - Setup
 
     func setupAudioEngine() {
-        os_log("%@ - %d", log: Streamer.logger, type: .debug, #function, #line)
-
         // Attach nodes
         attachNodes()
 
@@ -92,7 +94,7 @@ open class Streamer: Streaming {
         
         /// Use timer to schedule the buffers (this is not ideal, wish AVAudioEngine provided a pull-model for scheduling buffers)
         let interval = 1 / (readFormat.sampleRate / Double(readBufferSize))
-        let timer = Timer(timeInterval: interval / 2, repeats: true) {
+        let timer = AudioStreamerTimer(timeInterval: interval / 2, repeats: true) {
             [weak self] _ in
             guard self?.state != .stopped else {
                 return
@@ -118,57 +120,65 @@ open class Streamer: Streaming {
     // MARK: - Reset
     
     func reset() {
-        os_log("%@ - %d", log: Streamer.logger, type: .debug, #function, #line)
-        
         // Reset the playback state
         stop()
+
+        downloader.setDelegate(nil)
+        downloader.stop()
+        downloader = Downloader()
+        downloader.setDelegate(self)
+
         duration = nil
         reader = nil
+        parser = nil
         isFileSchedulingComplete = false
         
         // Create a new parser
         do {
             parser = try Parser()
         } catch {
-            os_log("Failed to create parser: %@", log: Streamer.logger, type: .error, error.localizedDescription)
         }
     }
     
     // MARK: - Methods
-    
-    public func play() {
-        os_log("%@ - %d", log: Streamer.logger, type: .debug, #function, #line)
-        
+
+    @discardableResult
+    public func play(fadeInDuration: TimeInterval? = nil) -> Bool {
         // Check we're not already playing
         guard !playerNode.isPlaying else {
-            return
+            return false
         }
         
         if !engine.isRunning {
             do {
                 try engine.start()
             } catch {
-                os_log("Failed to start engine: %@", log: Streamer.logger, type: .error, error.localizedDescription)
             }
         }
+        guard engine.isRunning else { return false }
         
         // To make the volume change less harsh we mute the output volume
         let lastVolume = volumeRampTargetValue ?? volume
-        volume = 0
+
+        volumeRampTimer?.invalidate()
+        volumeRampTimer = nil
+        volumeRampTargetValue = nil
+
+        volume = (fadeInDuration != nil) ? 0 : lastVolume
         
         // Start playback on the player node
         playerNode.play()
-        
-        // After 250ms we restore the volume to where it was
-        swellVolume(to: lastVolume)
+
+        if let fadeInDuration = fadeInDuration {
+            swellVolume(to: lastVolume, duration: fadeInDuration)
+        }
         
         // Update the state
         state = .playing
+        return true
     }
     
     public func pause() {
-        os_log("%@ - %d", log: Streamer.logger, type: .debug, #function, #line)
-        
         // Check if the player node is playing
         guard playerNode.isPlaying else {
             return
@@ -182,8 +192,6 @@ open class Streamer: Streaming {
     }
     
     public func stop() {
-        os_log("%@ - %d", log: Streamer.logger, type: .debug, #function, #line)
-        
         // Stop the downloader, the player node, and the engine
         downloader.stop()
         playerNode.stop()
@@ -194,8 +202,6 @@ open class Streamer: Streaming {
     }
     
     public func seek(to time: TimeInterval) throws {
-        os_log("%@ - %d [%.1f]", log: Streamer.logger, type: .debug, #function, #line, time)
-        
         // Make sure we have a valid parser and reader
         guard let parser = parser, let reader = reader else {
             return
@@ -221,7 +227,6 @@ open class Streamer: Streaming {
         do {
             try reader.seek(packetOffset)
         } catch {
-            os_log("Failed to seek: %@", log: Streamer.logger, type: .error, error.localizedDescription)
             return
         }
         
@@ -239,9 +244,11 @@ open class Streamer: Streaming {
     
     func swellVolume(to newVolume: Float, duration: TimeInterval = 0.5) {
         volumeRampTargetValue = newVolume
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(duration*1000/2))) { [unowned self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(duration*1000/2))) { [weak self] in
+            guard let `self` = self else { return }
+            
             self.volumeRampTimer?.invalidate()
-            let timer = Timer(timeInterval: Double(Float((duration/2.0))/(newVolume * 10)), repeats: true) { timer in
+            let timer = AudioStreamerTimer(timeInterval: Double(Float((duration/2.0))/(newVolume * 10)), repeats: true) { timer in
                 if self.volume != newVolume {
                     self.volume = min(newVolume, self.volume + 0.1)
                 } else {
@@ -259,7 +266,6 @@ open class Streamer: Streaming {
 
     func scheduleNextBuffer() {
         guard let reader = reader else {
-            os_log("No reader yet...", log: Streamer.logger, type: .debug)
             return
         }
 
@@ -271,10 +277,8 @@ open class Streamer: Streaming {
             let nextScheduledBuffer = try reader.read(readBufferSize)
             playerNode.scheduleBuffer(nextScheduledBuffer)
         } catch ReaderError.reachedEndOfFile {
-            os_log("Scheduler reached end of file", log: Streamer.logger, type: .debug)
             isFileSchedulingComplete = true
         } catch {
-            os_log("Cannot schedule buffer: %@", log: Streamer.logger, type: .debug, error.localizedDescription)
         }
     }
 
@@ -308,6 +312,7 @@ open class Streamer: Streaming {
         if currentTime >= duration {
             try? seek(to: 0)
             pause()
+            delegate?.streamerDidFinishPlaying(self)
         }
     }
 
